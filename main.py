@@ -37,6 +37,7 @@ def simplex(c, A, b, Basis):
 		parada = [True if x_ < 0 else False for x_ in c_redu ]
 
 		if True not in parada:
+			pdb.set_trace()
 			return [np.dot(c,x), x, p]
 
 		# Pega o primeiro j não negativo
@@ -48,38 +49,31 @@ def simplex(c, A, b, Basis):
 
 		# Terceiro passo
 		u = np.dot(Binv, A[:,k])
-		u[u == 0] = -np.inf # CUIDADO: tratando divisões por zero
 
 		# O algoritmo para se todos os u's são negativos
-		parada = [True if x_ > 0 else False for x_ in u ]
-		
+		parada = [True if x_ > 0 else False for x_ in u ]		
 		if True not in parada:
 			# Neste caso, o custo otimo é -infinito
 			return [-np.inf, None, None]
 
 		# Quarto passo (Escolhe quem sai)
-		theta = np.array(x[Basis]/u.T)[0]
-		l, t_estrela = min(enumerate([x_ if x_ > 0 else np.inf for x_ in theta]), key = lambda x: x[1])
-		pdb.set_trace()
-		l = Basis[l]
+		u_b = list(zip(Basis, map(float,u)))
+		theta = []
+		for base,u_ in u_b:
+			if u_ > 0:
+				theta.append((base,x[base]/u_))
+		l, t_estrela = min(theta, key = lambda x_: x_[1])
 		
-
-		u_ = iter(u)
 		# Quinto passo
-		u[u == -np.inf] = 0
-		x[Basis] = np.matrix(x[Basis]) - t_estrela*u
-		# for i in Basis:
-		# 	if i != l:
-		# 		x[i] = x[i] - t_estrela*u_.next()
+		x[Basis] = np.matrix(x[Basis]).T - t_estrela*u
 		x[l] = 0
 		x[k] = t_estrela
 		Basis[Basis.index(l)] = k
 		Basis.sort()
 		
-		
 		# Sexto passo
 		Binv = escalonar(Binv, u, Basis.index(k))
-	
+		pdb.set_trace()
 
 	
 
@@ -89,8 +83,8 @@ u = np.array([2,1,3], dtype=float)
 #print(simplex(np.array([1,1,1,1]), A, [0,0,1], [0,1,2]))
 
 
-c = [-100, -150, -50, 0, 0]
-Basis = [3,4]
-A = np.matrix('5 8 3 1 0; 2 2 1 0 1')
-b = [50, 20]
+c = [-10, -12, -12, 0, 0, 0]
+Basis = [3,4,5]
+A = np.matrix('1 2 2 1 0 0; 2 1 2 0 1 0; 2 2 1 0 0 1')
+b = [20, 20, 20]
 print(simplex(c,A,b,Basis))
